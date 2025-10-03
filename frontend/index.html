@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Sketch Studio Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: 250px 1fr 300px;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .sidebar {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .sidebar h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .tool-btn {
+            width: 100%;
+            background: white;
+            border: 2px solid #e0e0e0;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9em;
+        }
+
+        .tool-btn:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .tool-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .canvas-area {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .canvas-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .canvas-wrapper h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        canvas {
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            cursor: crosshair;
+            background: white;
+            max-width: 100%;
+        }
+
+        .layers-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .layer-item {
+            background: white;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .layer-item:hover {
+            background: #f0f4ff;
+        }
+
+        .layer-item.active {
+            border: 2px solid #667eea;
+        }
+
+        .layer-controls {
+            display: flex;
+            gap: 5px;
+        }
+
+        .layer-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            font-size: 0.8em;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: 600;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .control-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+        }
+
+        input[type="color"] {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        input[type="range"] {
+            width: 120px;
+        }
+
+        input[type="text"] {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.9em;
+        }
+
+        .ai-effects {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .effect-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 12px;
+            font-size: 0.85em;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-weight: bold;
+            margin: 20px 0;
+            display: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading.active {
+            display: block;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .timeline {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .timeline-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .frame-strip {
+            display: flex;
+            gap: 5px;
+            overflow-x: auto;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .frame {
+            min-width: 60px;
+            height: 60px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+            background: white;
+        }
+
+        .frame.active {
+            border-color: #667eea;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+        }
+
+        @media (max-width: 1200px) {
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+
+            .canvas-container {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 AI Sketch Studio Pro</h1>
+        <p class="subtitle">Professional AI-powered drawing studio with layers, animations, and advanced effects!</p>
+
+        <div class="workspace">
+            <div class="sidebar">
+                <h3>🛠 Tools</h3>
+                <button class="tool-btn active" data-tool="brush">🖌 Brush</button>
+                <button class="tool-btn" data-tool="eraser">🧽 Eraser</button>
+                <button class="tool-btn" data-tool="rectangle">▭ Rectangle</button>
+                <button class="tool-btn" data-tool="circle">⭕ Circle</button>
+                <button class="tool-btn" data-tool="line">╱ Line</button>
+                <button class="tool-btn" data-tool="text">T Text</button>
+                <button class="tool-btn" data-tool="fill">🪣 Fill</button>
+                <button class="tool-btn" data-tool="eyedropper">💧 Eyedropper</button>
+            </div>
+
+            <div class="canvas-area">
+                <div class="controls">
+                    <div class="control-group">
+                        <label>Color:</label>
+                        <input type="color" id="colorPicker" value="#000000">
+                    </div>
+                    <div class="control-group">
+                        <label>Size:</label>
+                        <input type="range" id="brushSize" min="1" max="50" value="5">
+                        <span id="sizeDisplay">5</span>
+                    </div>
+                    <div class="control-group">
+                        <label>Opacity:</label>
+                        <input type="range" id="opacity" min="0" max="100" value="100">
+                        <span id="opacityDisplay">100</span>%
+                    </div>
+                    <button onclick="undo()">↶ Undo</button>
+                    <button onclick="redo()">↷ Redo</button>
+                    <button onclick="clearCanvas()">🗑 Clear</button>
+                    <button onclick="document.getElementById('uploadImage').click()">📁 Upload</button>
+                    <input type="file" id="uploadImage" class="file-input" accept="image/*">
+                </div>
+
+                <div class="canvas-container">
+                    <div class="canvas-wrapper">
+                        <h3>Your Drawing</h3>
+                        <canvas id="drawCanvas" width="500" height="500"></canvas>
+                    </div>
+                    <div class="canvas-wrapper">
+                        <h3>AI Transformation</h3>
+                        <canvas id="aiCanvas" width="500" height="500"></canvas>
+                    </div>
+                </div>
+
+                <div class="loading" id="loading">✨ AI Processing...</div>
+
+                <div class="ai-effects">
+                    <button class="effect-btn" onclick="applyAIStyle('pixelate')">🟦 Pixelate</button>
+                    <button class="effect-btn" onclick="applyAIStyle('mirror')">🪞 Mirror</button>
+                    <button class="effect-btn" onclick="applyAIStyle('invert')">🔄 Invert</button>
+                    <button class="effect-btn" onclick="applyAIStyle('kaleidoscope')">🌀 Kaleidoscope</button>
+                    <button class="effect-btn" onclick="applyAIStyle('edge')">📐 Edge Detect</button>
+                    <button class="effect-btn" onclick="applyAIStyle('glow')">✨ Neon Glow</button>
+                    <button class="effect-btn" onclick="applyAIStyle('wave')">🌊 Wave</button>
+                    <button class="effect-btn" onclick="applyAIStyle('oil')">🎨 Oil Paint</button>
+                    <button class="effect-btn" onclick="applyAIStyle('emboss')">⛰ Emboss</button>
+                    <button class="effect-btn" onclick="applyAIStyle('mosaic')">🧩 Mosaic</button>
+                    <button class="effect-btn" onclick="applyAIStyle('blur')">💨 Motion Blur</button>
+                    <button class="effect-btn" onclick="applyAIStyle('chromatic')">🌈 Chromatic</button>
+                </div>
+            </div>
+
+            <div class="layers-panel">
+                <h3>📚 Layers</h3>
+                <div id="layersList"></div>
+                <button onclick="addLayer()" style="width: 100%; margin-top: 10px;">+ Add Layer</button>
+            </div>
+        </div>
+
+        <div class="timeline">
+            <h3>🎬 Animation Timeline</h3>
+            <div class="timeline-controls">
+                <button onclick="addFrame()">+ Add Frame</button>
+                <button onclick="playAnimation()">▶ Play</button>
+                <button onclick="stopAnimation()">⏹ Stop</button>
+                <button onclick="exportGIF()">📥 Export GIF</button>
+                <div class="control-group">
+                    <label>FPS:</label>
+                    <input type="range" id="fps" min="1" max="30" value="10">
+                    <span id="fpsDisplay">10</span>
+                </div>
+            </div>
+            <div class="frame-strip" id="frameStrip"></div>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <button onclick="exportPNG()">💾 Export PNG</button>
+            <button onclick="exportSVG()">📄 Export SVG</button>
+            <button onclick="saveProject()">💼 Save Project</button>
+            <button onclick="document.getElementById('loadProject').click()">📂 Load Project</button>
+            <input type="file" id="loadProject" class="file-input" accept=".json">
+        </div>
+    </div>
+
+    <div id="textModal" class="modal">
+        <div class="modal-content">
+            <h3>Add Text</h3>
+            <input type="text" id="textInput" placeholder="Enter text..." style="width: 100%; margin: 15px 0;">
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button onclick="closeTextModal()">Cancel</button>
+                <button onclick="addText()">Add</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Canvas setup
+        const drawCanvas = document.getElementById('drawCanvas');
+        const aiCanvas = document.getElementById('aiCanvas');
+        const drawCtx = drawCanvas.getContext('2d');
+        const aiCtx = aiCanvas.getContext('2d');
+
+        // State management
+        let currentTool = 'brush';
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        let currentColor = '#000000';
+        let currentSize = 5;
+        let currentOpacity = 100;
+        let history = [];
+        let historyStep = -1;
+        let layers = [{id: 1, name: 'Layer 1', canvas: document.createElement('canvas'), visible: true, opacity: 100}];
+        let currentLayer = 0;
+        let frames = [];
+        let currentFrame = 0;
+        let animationInterval = null;
+
+        // Initialize
+        function init() {
+            layers[0].canvas.width = drawCanvas.width;
+            layers[0].canvas.height = drawCanvas.height;
+            const ctx = layers[0].canvas.getContext('2d');
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, layers[0].canvas.width, layers[0].canvas.height);
+
+            drawCtx.fillStyle = 'white';
+            drawCtx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
+            aiCtx.fillStyle = 'white';
+            aiCtx.fillRect(0, 0, aiCanvas.width, aiCanvas.height);
+
+            updateLayersList();
+            saveHistory();
+            addFrame();
+        }
+
+        // Tool selection
+        document.querySelectorAll('.tool-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentTool = this.dataset.tool;
+
+                if (currentTool === 'text') {
+                    document.getElementById('textModal').classList.add('active');
+                }
+            });
+        });
+
+        // Drawing events
+        drawCanvas.addEventListener('mousedown', startDrawing);
+        drawCanvas.addEventListener('mousemove', draw);
+        drawCanvas.addEventListener('mouseup', stopDrawing);
+        drawCanvas.addEventListener('mouseout', stopDrawing);
+        drawCanvas.addEventListener('touchstart', handleTouch);
+        drawCanvas.addEventListener('touchmove', handleTouch);
+        drawCanvas.addEventListener('touchend', stopDrawing);
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const rect = drawCanvas.getBoundingClientRect();
+            lastX = e.clientX - rect.left;
+            lastY = e.clientY - rect.top;
+
+            if (currentTool === 'eyedropper') {
+                const imageData = layers[currentLayer].canvas.getContext('2d').getImageData(lastX, lastY, 1, 1);
+                const [r, g, b] = imageData.data;
+                currentColor = `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+                document.getElementById('colorPicker').value = currentColor;
+                isDrawing = false;
+            } else if (currentTool === 'fill') {
+                floodFill(lastX, lastY, currentColor);
+                isDrawing = false;
+                saveHistory();
+            }
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            const rect = drawCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const ctx = layers[currentLayer].canvas.getContext('2d');
+
+            ctx.strokeStyle = currentColor;
+            ctx.fillStyle = currentColor;
+            ctx.lineWidth = currentSize;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.globalAlpha = currentOpacity / 100;
+
+            switch(currentTool) {
+                case 'brush':
+                    ctx.beginPath();
+                    ctx.moveTo(lastX, lastY);
+                    ctx.lineTo(x, y);
+                    ctx.stroke();
+                    break;
+                case 'eraser':
+                    ctx.globalCompositeOperation = 'destination-out';
+                    ctx.beginPath();
+                    ctx.moveTo(lastX, lastY);
+                    ctx.lineTo(x, y);
+                    ctx.stroke();
+                    ctx.globalCompositeOperation = 'source-over';
+                    break;
+            }
+
+            lastX = x;
+            lastY = y;
+            renderLayers();
+        }
+
+        function stopDrawing() {
+            if (isDrawing) {
+                isDrawing = false;
+                saveHistory();
+            }
+        }
+
+        function handleTouch(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 'mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            drawCanvas.dispatchEvent(mouseEvent);
+        }
+
+        // Control updates
+        document.getElementById('colorPicker').addEventListener('change', (e) => {
+            currentColor = e.target.value;
+        });
+
+        document.getElementById('brushSize').addEventListener('input', (e) => {
+            currentSize = e.target.value;
+            document.getElementById('sizeDisplay').textContent = e.target.value;
+        });
+
+        document.getElementById('opacity').addEventListener('input', (e) => {
+            currentOpacity = e.target.value;
+            document.getElementById('opacityDisplay').textContent = e.target.value;
+        });
+
+        document.getElementById('fps').addEventListener('input', (e) => {
+            document.getElementById('fpsDisplay').textContent = e.target.value;
+        });
+
+        // Layer management
+        function updateLayersList() {
+            const list = document.getElementById('layersList');
+            list.innerHTML = '';
+
+            layers.forEach((layer, index) => {
+                const item = document.createElement('div');
+                item.className = `layer-item ${index === currentLayer ? 'active' : ''}`;
+                item.innerHTML = `
+                    <span>${layer.name}</span>
+                    <div class="layer-controls">
+                        <button class="layer-btn" onclick="toggleLayerVisibility(${index})">👁</button>
+                        <button class="layer-btn" onclick="deleteLayer(${index})">🗑</button>
+                    </div>
+                `;
+                item.onclick = (e) => {
+                    if (!e.target.classList.contains('layer-btn')) {
+                        currentLayer = index;
+                        updateLayersList();
+                    }
+                };
+                list.appendChild(item);
+            });
+        }
+
+        function addLayer() {
+            const canvas = document.createElement('canvas');
+            canvas.width = drawCanvas.width;
+            canvas.height = drawCanvas.height;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = 'transparent';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            layers.push({
+                id: Date.now(),
+                name: `Layer ${layers.length + 1}`,
+                canvas: canvas,
+                visible: true,
+                opacity: 100
+            });
+            currentLayer = layers.length - 1;
+            updateLayersList();
+            renderLayers();
+        }
+
+        function deleteLayer(index) {
+            if (layers.length === 1) return;
+            layers.splice(index, 1);
+            currentLayer = Math.max(0, currentLayer - 1);
+            updateLayersList();
+            renderLayers();
+        }
+
+        function toggleLayerVisibility(index) {
+            layers[index].visible = !layers[index].visible;
+            renderLayers();
+        }
+
+        function renderLayers() {
+            drawCtx.fillStyle = 'white';
+            drawCtx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
+
+            layers.forEach(layer => {
+                if (layer.visible) {
+                    drawCtx.globalAlpha = layer.opacity / 100;
+                    drawCtx.drawImage(layer.canvas, 0, 0);
+                }
+            });
+            drawCtx.globalAlpha = 1;
+        }
+
+        // History management
+        function saveHistory() {
+            historyStep++;
+            if (historyStep < history.length) {
+                history.length = historyStep;
+            }
+
+            const layerData = layers.map(layer => ({
+                id: layer.id,
+                name: layer.name,
+                imageData: layer.canvas.toDataURL(),
+                visible: layer.visible,
+                opacity: layer.opacity
+            }));
+
+            history.push(layerData);
+            if (history.length > 50) history.shift();
+        }
+
+        function undo() {
+            if (historyStep > 0) {
+                historyStep--;
+                restoreHistory(history[historyStep]);
+            }
+        }
+
+        function redo() {
+            if (historyStep < history.length - 1) {
+                historyStep++;
+                restoreHistory(history[historyStep]);
+            }
+        }
+
+        function restoreHistory(layerData) {
+            layers = layerData.map(data => {
+                const canvas = document.createElement('canvas');
+                canvas.width = drawCanvas.width;
+                canvas.height = drawCanvas.height;
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                img.src = data.imageData;
+                img.onload = () => {
+                    ctx.drawImage(img, 0, 0);
+                    renderLayers();
+                };
+
+                return {
+                    id: data.id,
+                    name: data.name,
+                    canvas: canvas,
+                    visible: data.visible,
+                    opacity: data.opacity
+                };
+            });
+            updateLayersList();
+        }
+
+        // Flood fill algorithm
+        function floodFill(startX, startY, fillColor) {
+            const ctx = layers[currentLayer].canvas.getContext('2d');
+            const imageData = ctx.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
+            const pixels = imageData.data;
+
+            const startPos = (startY * drawCanvas.width + startX) * 4;
+            const startR = pixels[startPos];
+            const startG = pixels[startPos + 1];
+            const startB = pixels[startPos + 2];
+
+            const fillRGB = hexToRgb(fillColor);
+
+            if (startR === fillRGB.r && startG === fillRGB.g && startB === fillRGB.b) return;
+
+            const stack = [[startX, startY]];
+
+            while (stack.length > 0) {
+                const [x, y] = stack.pop();
+                const pos = (y * drawCanvas.width + x) * 4;
+
+                if (x < 0 || x >= drawCanvas.width || y < 0 || y >= drawCanvas.height) continue;
+                if (pixels[pos] !== startR || pixels[pos + 1] !== startG || pixels[pos + 2] !== startB) continue;
+
+                pixels[pos] = fillRGB.r;
+                pixels[pos + 1] = fillRGB.g;
+                pixels[pos + 2] = fillRGB.b;
+                pixels[pos + 3] = 255;
+
+                stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+            renderLayers();
+        }
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        // Text tool
+        function closeTextModal() {
+            document.getElementById('textModal').classList.remove('active');
+        }
+
+        function addText() {
+            const text = document.getElementById('textInput').value;
+            if (!text) return;
+
+            const ctx = layers[currentLayer].canvas.getContext('2d');
+            ctx.font = `${currentSize * 4}px Arial`;
+            ctx.fillStyle = currentColor;
+            ctx.fillText(text, drawCanvas.width / 2 - 50, drawCanvas.height / 2);
+
+            renderLayers();
+            saveHistory();
+            closeTextModal();
+            document.getElementById('textInput').value = '';
+        }
+
+        // Image upload
+        document.getElementById('uploadImage').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    const ctx = layers[currentLayer].canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, drawCanvas.width, drawCanvas.height);
+                    renderLayers();
+                    saveHistory();
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Animation
+        function addFrame() {
+            const frameData = layers.map(layer => layer.canvas.toDataURL());
+            frames.push(frameData);
+            updateFrameStrip();
+        }
+
+        function updateFrameStrip() {
+            const strip = document.getElementById('frameStrip');
+            strip.innerHTML = '';
+
+            frames.forEach((frame, index) => {
+                const frameEl = document.createElement('canvas');
+                frameEl.className = `frame ${index === currentFrame ? 'active' : ''}`;
+                frameEl.width = 60;
+                frameEl.height = 60;
+                const ctx = frameEl.getContext('2d');
+                const img = new Image();
+                img.onload = () => ctx.drawImage(img, 0, 0, 60, 60);
+                img.src = frame[0];
+
+                frameEl.onclick = () => {
+                    currentFrame = index;
+                    loadFrame(index);
+                    updateFrameStrip();
+                };
+
+                strip.appendChild(frameEl);
+            });
+        }
+
+        function loadFrame(index) {
+            frames[index].forEach((data, layerIndex) => {
+                const img = new Image();
+                img.onload = () => {
+                    const ctx = layers[layerIndex].canvas.getContext('2d');
+                    ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+                    ctx.drawImage(img, 0, 0);
+                    renderLayers();
+                };
+                img.src = data;
+            });
+        }
+
+        function playAnimation() {
+            if (animationInterval) return;
+
+            const fps = document.getElementById('fps').value;
+            let frameIndex = 0;
+
+            animationInterval = setInterval(() => {
+                loadFrame(frameIndex);
+                frameIndex = (frameIndex + 1) % frames.length;
+            }, 1000 / fps);
+        }
+
+        function stopAnimation() {
+            if (animationInterval) {
+                clearInterval(animationInterval);
+                animationInterval = null;
+            }
+        }
+
+        // AI Effects
+        function showLoading() {
+            document.getElementById('loading').classList.add('active');
+            setTimeout(() => document.getElementById('loading').classList.remove('active'), 800);
+        }
+
+        function applyAIStyle(style) {
+            showLoading();
+
+            setTimeout(() => {
+                const imageData = drawCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
+                let newImageData;
+
+                switch(style) {
+                    case 'pixelate': newImageData = pixelateEffect(imageData); break;
+                    case 'mirror': newImageData = mirrorEffect(imageData); break;
+                    case 'invert': newImageData = invertEffect(imageData); break;
+                    case 'kaleidoscope': newImageData = kaleidoscopeEffect(imageData); break;
+                    case 'edge': newImageData = edgeDetectionEffect(imageData); break;
+                    case 'glow': newImageData = glowEffect(imageData); break;
+                    case 'wave': newImageData = waveEffect(imageData); break;
+                    case 'oil': newImageData = oilPaintEffect(imageData); break;
+                    case 'emboss': newImageData = embossEffect(imageData); break;
+                    case 'mosaic': newImageData = mosaicEffect(imageData); break;
+                    case 'blur': newImageData = motionBlurEffect(imageData); break;
+                    case 'chromatic': newImageData = chromaticEffect(imageData); break;
+                }
+
+                aiCtx.putImageData(newImageData, 0, 0);
+            }, 100);
+        }
+
+        // Effect functions
+        function pixelateEffect(imageData) {
+            const data = imageData.data;
+            const pixelSize = 15;
+
+            for (let y = 0; y < imageData.height; y += pixelSize) {
+                for (let x = 0; x < imageData.width; x += pixelSize) {
+                    const i = (y * imageData.width + x) * 4;
+                    const r = data[i], g = data[i + 1], b = data[i + 2];
+
+                    for (let py = 0; py < pixelSize; py++) {
+                        for (let px = 0; px < pixelSize; px++) {
+                            const pi = ((y + py) * imageData.width + (x + px)) * 4;
+                            if (pi < data.length) {
+                                data[pi] = r;
+                                data[pi + 1] = g;
+                                data[pi + 2] = b;
+                            }
+                        }
+                    }
+                }
+            }
+            return imageData;
+        }
+
+        function mirrorEffect(imageData) {
+            const data = imageData.data;
+            for (let y = 0; y < imageData.height; y++) {
+                for (let x = 0; x < imageData.width / 2; x++) {
+                    const i = (y * imageData.width + x) * 4;
+                    const mi = (y * imageData.width + (imageData.width - 1 - x)) * 4;
+                    data[mi] = data[i];
+                    data[mi + 1] = data[i + 1];
+                    data[mi + 2] = data[i + 2];
+                }
+            }
+            return imageData;
+        }
+
+        function invertEffect(imageData) {
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                data[i] = 255 - data[i];
+                data[i + 1] = 255 - data[i + 1];
+                data[i + 2] = 255 - data[i + 2];
+            }
+            return imageData;
+        }
+
+        function kaleidoscopeEffect(imageData) {
+            const newData = aiCtx.createImageData(imageData.width, imageData.height);
+            const centerX = imageData.width / 2;
+            const centerY = imageData.height / 2;
+            const segments = 8;
+
+            for (let y = 0; y < imageData.height; y++) {
+                for (let x = 0; x < imageData.width; x++) {
+                    const dx = x - centerX;
+                    const dy = y - centerY;
+                    const angle = Math.atan2(dy, dx);
+                    const radius = Math.sqrt(dx * dx + dy * dy);
+
+                    const segmentAngle = (2 * Math.PI) / segments;
+                    const normalizedAngle = ((angle % segmentAngle) + segmentAngle) % segmentAngle;
+
+                    const sourceX = Math.floor(centerX + radius * Math.cos(normalizedAngle));
+                    const sourceY = Math.floor(centerY + radius * Math.sin(normalizedAngle));
+
+                    if (sourceX >= 0 && sourceX < imageData.width && sourceY >= 0 && sourceY < imageData.height) {
+                        const sourceI = (sourceY * imageData.width + sourceX) * 4;
+                        const targetI = (y * imageData.width + x) * 4;
+                        newData.data[targetI] = imageData.data[sourceI];
+                        newData.data[targetI + 1] = imageData.data[sourceI + 1];
+                        newData.data[targetI + 2] = imageData.data[sourceI + 2];
+                        newData.data[targetI + 3] = imageData.data[sourceI + 3];
+                    }
+                }
+            }
+            return newData;
+        }
+
+        function edgeDetectionEffect(imageData) {
+            const newData = aiCtx.createImageData(imageData.width, imageData.height);
+
+            for (let y = 1; y < imageData.height - 1; y++) {
+                for (let x = 1; x < imageData.width - 1; x++) {
+                    const gx =
+                        -imageData.data[((y - 1) * imageData.width + (x - 1)) * 4] +
+                        imageData.data[((y - 1) * imageData.width + (x + 1)) * 4] +
+                        -2 * imageData.data[(y * imageData.width + (x - 1)) * 4] +
+                        2 * imageData.data[(y * imageData.width + (x + 1)) * 4] +
+                        -imageData.data[((y + 1) * imageData.width + (x - 1)) * 4] +
+                        imageData.data[((y + 1) * imageData.width + (x + 1)) * 4];
+
+                    const gy =
+                        -imageData.data[((y - 1) * imageData.width + (x - 1)) * 4] +
+                        -2 * imageData.data[((y - 1) * imageData.width + x) * 4] +
+                        -imageData.data[((y - 1) * imageData.width + (x + 1)) * 4] +
+                        imageData.data[((y + 1) * imageData.width + (x - 1)) * 4] +
+                        2 * imageData.data[((y + 1) * imageData.width + x) * 4] +
+                        imageData.data[((y + 1) * imageData.width + (x + 1)) * 4];
+
+                    const magnitude = Math.sqrt(gx * gx + gy * gy);
+                    const i = (y * imageData.width + x) * 4;
+                    newData.data[i] = magnitude;
+                    newData.data[i + 1] = magnitude;
+                    newData.data[i + 2] = magnitude;
+                    newData.data[i + 3] = 255;
+                }
+            }
+            return newData;
+        }
+
+        function glowEffect(imageData) {
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                const brightness = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                if (brightness < 200) {
+                    data[i] = Math.min(255, data[i] * 1.5);
+                    data[i + 1] = Math.min(255, data[i + 1] * 1.5 + 50);
+                    data[i + 2] = Math.min(255, data[i + 2] * 1.5 + 100);
+                }
+            }
+            return imageData;
+        }
+
+        function waveEffect(imageData) {
+            const newData = aiCtx.createImageData(imageData.width, imageData.height);
+            const amplitude = 25;
+            const frequency = 0.04;
+
+            for (let y = 0; y < imageData.height; y++) {
+                for (let x = 0; x < imageData.width; x++) {
+                    const sourceX = x + Math.sin(y * frequency) * amplitude;
+                    const sourceY = y + Math.cos(x * frequency) * amplitude;
+
+                    if (sourceX >= 0 && sourceX < imageData.width && sourceY >= 0 && sourceY < imageData.height) {
+                        const sourceI = (Math.floor(sourceY) * imageData.width + Math.floor(sourceX)) * 4;
+                        const targetI = (y * imageData.width + x) * 4;
+                        newData.data[targetI] = imageData.data[sourceI];
+                        newData.data[targetI + 1] = imageData.data[sourceI + 1];
+                        newData.data[targetI + 2] = imageData.data[sourceI + 2];
+                        newData.data[targetI + 3] = imageData.data[sourceI + 3];
+                    }
+                }
+            }
+            return newData;
+        }
+
+        function oilPaintEffect(imageData) {
+            const newData = aiCtx.createImageData(imageData.width, imageData.height);
+            const radius = 4;
+
+            for (let y = radius; y < imageData.height - radius; y++) {
+                for (let x = radius; x < imageData.width - radius; x++) {
+                    const intensityCount = [];
+                    const rSum = [];
+                    const gSum = [];
+                    const bSum = [];
+
+                    for (let i = 0; i < 256; i++) {
+                        intensityCount[i] = 0;
+                        rSum[i] = 0;
+                        gSum[i] = 0;
+                        bSum[i] = 0;
+                    }
+
+                    for (let dy = -radius; dy <= radius; dy++) {
+                        for (let dx = -radius; dx <= radius; dx++) {
+                            const i = ((y + dy) * imageData.width + (x + dx)) * 4;
+                            const intensity = Math.floor((imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3);
+                            intensityCount[intensity]++;
+                            rSum[intensity] += imageData.data[i];
+                            gSum[intensity] += imageData.data[i + 1];
+                            bSum[intensity] += imageData.data[i + 2];
+                        }
+                    }
+
+                    let maxIndex = 0;
+                    for (let i = 0; i < 256; i++) {
+                        if (intensityCount[i] > intensityCount[maxIndex]) {
+                            maxIndex = i;
+                        }
+                    }
+
+                    const i = (y * imageData.width + x) * 4;
+                    newData.data[i] = rSum[maxIndex] / intensityCount[maxIndex];
+                    newData.data[i + 1] = gSum[maxIndex] / intensityCount[maxIndex];
+                    newData.data[i + 2] = bSum[maxIndex] / intensityCount[maxIndex];
+                    newData.data[i + 3] = 255;
+                }
+            }
+            return newData;
+        }
+
+        function embossEffect(imageData) {
+            const newData = aiCtx.createImageData(imageData.width, imageData.height);
+
+            for (let y = 1; y < imageData.height - 1; y++) {
+                for (let x = 1; x < imageData.width - 1; x++) {
+                    const i = (y * imageData.width + x) * 4;
+                    const p1 = imageData.data[((y - 1) * imageData.width + (x - 1)) * 4];
+                    const p2 = imageData.data[((y + 1) * imageData.width + (x + 1)) * 4];
+
+                    const diff = p1 - p2 + 128;
+                    newData.data[i] = diff;
+                    newData.data[i + 1] = diff;
+                    newData.data[i + 2] = diff;
+                    newData.data[i + 3] = 255;
+                }
+            }
+            return newData;
+        }
+
+        function mosaicEffect(imageData) {
+            const newData = aiCtx.createImageData(imageData.width, imageData.height);
+            const tileSize = 20;
+
+            for (let y = 0; y < imageData.height; y += tileSize) {
+                for (let x = 0; x < imageData.width; x += tileSize) {
+                    let r = 0, g = 0, b = 0, count = 0;
+
+                    for (let dy = 0; dy < tileSize && y + dy < imageData.height; dy++) {
+                        for (let dx = 0; dx < tileSize && x + dx < imageData.width; dx++) {
+                            const i = ((y + dy) * imageData.width + (x + dx)) * 4;
+                            r += imageData.data[i];
+                            g += imageData.data[i + 1];
+                            b += imageData.data[i + 2];
+                            count++;
+                        }
+                    }
+
+                    r = Math.floor(r / count);
+                    g = Math.floor(g / count);
+                    b = Math.floor(b / count);
+
+                    for (let dy = 0; dy < tileSize && y + dy < imageData.height; dy++) {
+                        for (let dx = 0; dx < tileSize && x + dx < imageData.width; dx++) {
+                            const i = ((y + dy) * imageData.width + (x + dx)) * 4;
+                            newData.data[i] = r;
+                            newData.data[i + 1] = g;
+                            newData.data[i + 2] = b;
+                            newData.data[i + 3] = 255;
+                        }
+                    }
+                }
+            }
+            return newData;
+        }
+
+        function motionBlurEffect(imageData) {
+            const newData = aiCtx.createImageData(imageData.width, imageData.height);
+            const blurAmount = 15;
+
+            for (let y = 0; y < imageData.height; y++) {
+                for (let x = 0; x < imageData.width; x++) {
+                    let r = 0, g = 0, b = 0, count = 0;
+
+                    for (let i = 0; i < blurAmount; i++) {
+                        const offsetX = x - i;
+                        if (offsetX >= 0) {
+                            const idx = (y * imageData.width + offsetX) * 4;
+                            r += imageData.data[idx];
+                            g += imageData.data[idx + 1];
+                            b += imageData.data[idx + 2];
+                            count++;
+                        }
+                    }
+
+                    const i = (y * imageData.width + x) * 4;
+                    newData.data[i] = r / count;
+                    newData.data[i + 1] = g / count;
+                    newData.data[i + 2] = b / count;
+                    newData.data[i + 3] = 255;
+                }
+            }
+            return newData;
+        }
+
+        function chromaticEffect(imageData) {
+            const newData = aiCtx.createImageData(imageData.width, imageData.height);
+            const offset = 10;
+
+            for (let y = 0; y < imageData.height; y++) {
+                for (let x = 0; x < imageData.width; x++) {
+                    const i = (y * imageData.width + x) * 4;
+
+                    // Red channel shifted right
+                    const rX = Math.min(x + offset, imageData.width - 1);
+                    const rI = (y * imageData.width + rX) * 4;
+                    newData.data[i] = imageData.data[rI];
+
+                    // Green channel normal
+                    newData.data[i + 1] = imageData.data[i + 1];
+
+                    // Blue channel shifted left
+                    const bX = Math.max(x - offset, 0);
+                    const bI = (y * imageData.width + bX) * 4;
+                    newData.data[i + 2] = imageData.data[bI + 2];
+
+                    newData.data[i + 3] = 255;
+                }
+            }
+            return newData;
+        }
+
+        // Export functions
+        function clearCanvas() {
+            layers[currentLayer].canvas.getContext('2d').fillStyle = 'white';
+            layers[currentLayer].canvas.getContext('2d').fillRect(0, 0, drawCanvas.width, drawCanvas.height);
+            renderLayers();
+            saveHistory();
+        }
+
+        function exportPNG() {
+            const link = document.createElement('a');
+            link.download = 'artwork.png';
+            link.href = aiCanvas.toDataURL();
+            link.click();
+        }
+
+        function exportSVG() {
+            alert('SVG export would require converting raster to vector - this is a simplified demo. Use PNG export instead!');
+        }
+
+        function exportGIF() {
+            alert('GIF export would require a GIF encoder library. This is a demo - use the animation playback feature instead!');
+        }
+
+        function saveProject() {
+            const projectData = {
+                layers: layers.map(layer => ({
+                    name: layer.name,
+                    imageData: layer.canvas.toDataURL(),
+                    visible: layer.visible,
+                    opacity: layer.opacity
+                })),
+                frames: frames
+            };
+
+            const blob = new Blob([JSON.stringify(projectData)], {type: 'application/json'});
+            const link = document.createElement('a');
+            link.download = 'project.json';
+            link.href = URL.createObjectURL(blob);
+            link.click();
+        }
+
+        document.getElementById('loadProject').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const projectData = JSON.parse(event.target.result);
+
+                layers = projectData.layers.map(data => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = drawCanvas.width;
+                    canvas.height = drawCanvas.height;
+                    const ctx = canvas.getContext('2d');
+                    const img = new Image();
+                    img.onload = () => {
+                        ctx.drawImage(img, 0, 0);
+                        renderLayers();
+                    };
+                    img.src = data.imageData;
+
+                    return {
+                        id: Date.now() + Math.random(),
+                        name: data.name,
+                        canvas: canvas,
+                        visible: data.visible,
+                        opacity: data.opacity
+                    };
+                });
+
+                frames = projectData.frames || [];
+                updateLayersList();
+                updateFrameStrip();
+            };
+            reader.readAsText(file);
+        });
+
+        // Initialize app
+        init();
+    </script>
+</body>
+</html>
