@@ -167,8 +167,9 @@
         </div>
     </div>
 
+    <script src="config.js"></script>
     <script>
-        const API_URL = 'http://localhost:5000/api';
+        const API_URL = API_CONFIG.API_URL;
 
         function switchTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));

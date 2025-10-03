@@ -1,8 +1,40 @@
 {
-  "rewrites": [
+  "version": 2,
+  "builds": [
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "backend/server.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "frontend/**",
+      "use": "@vercel/static"
     }
-  ]
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "backend/server.js"
+    },
+    {
+      "src": "/socket.io/(.*)",
+      "dest": "backend/server.js"
+    },
+    {
+      "src": "/auth.html",
+      "dest": "frontend/auth.html"
+    },
+    {
+      "src": "/collaboration.js",
+      "dest": "frontend/collaboration.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "frontend/index.html"
+    }
+  ],
+  "env": {
+    "MONGODB_URI": "@mongodb_uri",
+    "JWT_SECRET": "@jwt_secret",
+    "CLIENT_URL": "@client_url"
+  }
 }

@@ -1,5 +1,5 @@
 // WebSocket and collaboration functionality
-const socket = io('http://localhost:5000');
+const socket = io(API_CONFIG.SOCKET_URL);
 let currentProjectId = null;
 let activeCursors = new Map();
 

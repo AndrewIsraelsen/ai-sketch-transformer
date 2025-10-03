@@ -106,6 +106,20 @@ npm run dev
 http://localhost:5000/auth.html
 ```
 
+## 🚀 Deploy to Vercel
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
+
+**Quick Deploy:**
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/AndrewIsraelsen/ai-sketch-transformer)
+
+**Required Environment Variables:**
+- `MONGODB_URI` - Your MongoDB Atlas connection string
+- `JWT_SECRET` - Secret key for JWT tokens (min 32 characters)
+- `CLIENT_URL` - Your Vercel app URL
+- `NODE_ENV` - Set to `production`
+
 ## 📁 Project Structure
 
 ```
